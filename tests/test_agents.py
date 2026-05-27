@@ -8,8 +8,10 @@ from agentfish.agents import (
     AgentConfig,
     detect_agent_globally,
     detect_agent_in_project,
+    get_agent_by_name,
     get_detected_agents,
     identify_agent_for_file,
+    initialize_agent,
     is_universal_file,
 )
 
@@ -149,3 +151,56 @@ def test_get_detected_agents_project(tmp_path):
     names = {a.name for a in detected}
     assert "Claude Code" in names
     assert "Cursor" in names
+
+
+def test_get_agent_by_name():
+    """Should find agents by name (case-insensitive)."""
+    agent = get_agent_by_name("Claude Code")
+    assert agent is not None
+    assert agent.name == "Claude Code"
+
+    agent = get_agent_by_name("claude code")
+    assert agent is not None
+    assert agent.name == "Claude Code"
+
+    assert get_agent_by_name("NonExistent Agent") is None
+
+
+def test_all_agents_have_init_files():
+    """Every agent should have init_files defined for initialization."""
+    for config in AGENT_CONFIGS:
+        assert config.init_files, f"{config.name} has no init_files"
+
+
+def test_initialize_agent_creates_files(tmp_path):
+    """initialize_agent should create config files in the target directory."""
+    agent = get_agent_by_name("Claude Code")
+    assert agent is not None
+    created = initialize_agent(agent, tmp_path)
+    assert len(created) > 0
+    assert ".claude/CLAUDE.md" in created
+    assert (tmp_path / ".claude" / "CLAUDE.md").exists()
+
+
+def test_initialize_agent_skips_existing(tmp_path):
+    """initialize_agent should skip files that already exist."""
+    agent = get_agent_by_name("Claude Code")
+    assert agent is not None
+    # Pre-create the file
+    (tmp_path / ".claude").mkdir()
+    (tmp_path / ".claude" / "CLAUDE.md").write_text("existing content")
+
+    created = initialize_agent(agent, tmp_path)
+    assert len(created) == 0
+    # Original content should be preserved
+    assert (tmp_path / ".claude" / "CLAUDE.md").read_text() == "existing content"
+
+
+def test_initialize_agent_makes_detectable(tmp_path):
+    """After initialization, the agent should be detectable in the project."""
+    agent = get_agent_by_name("GitHub Copilot")
+    assert agent is not None
+    assert detect_agent_in_project(agent, tmp_path) is False
+
+    initialize_agent(agent, tmp_path)
+    assert detect_agent_in_project(agent, tmp_path) is True

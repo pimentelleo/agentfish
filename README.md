@@ -56,6 +56,31 @@ Use `--all-agents` / `-a` to bypass detection and install everything:
 agentfish add owner/repo --all-agents
 ```
 
+### No Agents? Initialize One
+
+When no agents are detected, agentfish offers to initialize one for you:
+
+```
+No AI coding agents detected.
+Would you like to initialize an agent for this project? [Y/n]: y
+
+       Available agents
+┏━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ #   ┃ Agent          ┃ Config Dir   ┃
+┡━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 1   │ Claude Code    │ .claude      │
+│ 2   │ Cursor         │ .cursor      │
+│ 3   │ GitHub Copilot │ .github      │
+│ ... │ ...            │ ...          │
+└─────┴────────────────┴──────────────┘
+
+Enter agent numbers to initialize (comma-separated, e.g. 1,3,5): 1,3
+  ✓ Created .claude/CLAUDE.md
+  ✓ Created .github/copilot-instructions.md
+```
+
+This creates starter config files for the selected agents, making them detectable for future installs.
+
 ### Detected Agents
 
 | Agent | Global Detection | Project Detection |
@@ -257,7 +282,7 @@ agentfish add owner/repo --all-agents       # Install for all agents
 
 ### detect
 
-Show which AI coding agents are detected on your system and in the current project.
+Show which AI coding agents are detected on your system and in the current project. If none are found, offers to initialize one.
 
 ```bash
 agentfish detect
@@ -393,6 +418,25 @@ agentfish add https://git.example.com/owner/repo.git
 - **Path validation**: agentfish rejects paths containing `..` or symlinks that escape the project directory
 - **Shallow clones**: source repos are cloned with `--depth=1` and deleted after installation
 - **Conflict prompts**: existing files are never silently overwritten (unless `--yes` is used)
+
+## Adding a New Agent
+
+To add support for a new AI coding agent, append an `AgentConfig` to `AGENT_CONFIGS` in `src/agentfish/agents.py`:
+
+```python
+AgentConfig(
+    name="My New Agent",
+    config_dir=".mynewagent",
+    home_paths=(".mynewagent",),           # paths under ~/ for global detection
+    cwd_paths=(".mynewagent",),            # paths under ./ for project detection
+    file_patterns=(".mynewagent/",),       # patterns this agent owns (for filtering)
+    init_files={                           # files created by `agentfish detect` init
+        ".mynewagent/instructions.md": "# My New Agent\n\nInstructions here.\n",
+    },
+)
+```
+
+That's it — the new agent will automatically work with detection, filtering, and initialization.
 
 ## License
 
