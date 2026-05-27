@@ -53,52 +53,7 @@ jobs:
             --title "$VERSION" \
             --generate-notes
 
-  build:
+  publish:
     needs: [check-version, release]
     if: needs.check-version.outputs.changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Install dependencies
-        run: uv sync
-
-      - name: Verify CLI works
-        run: uv run agentfish --version
-
-      - name: Run tests
-        run: uv run pytest tests/ -v
-
-      - name: Build package
-        run: uv build
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/agentfish
-    permissions:
-      id-token: write
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+    uses: ./.github/workflows/publish.yml
