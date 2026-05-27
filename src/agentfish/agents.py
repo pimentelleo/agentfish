@@ -34,167 +34,360 @@ class AgentConfig:
 
 
 AGENT_CONFIGS: list[AgentConfig] = [
+    # --- Claude Code (Anthropic) ---
+    # Docs: https://docs.anthropic.com/en/docs/claude-code/settings
+    # Docs: https://docs.anthropic.com/en/docs/claude-code/memory
     AgentConfig(
         name="Claude Code",
         config_dir=".claude",
         home_paths=(".claude",),
-        cwd_paths=(".claude",),
+        cwd_paths=(".claude", "CLAUDE.md"),
         file_patterns=(
-            ".claude/CLAUDE.md",
-            ".claude/settings.json",
-            ".claude/commands/",
+            "CLAUDE.md",
+            "CLAUDE.local.md",
+            ".claude/",
         ),
         init_files={
-            ".claude/CLAUDE.md": "# Project Guidelines\n\nAdd your Claude Code instructions here.\n",
+            "CLAUDE.md": (
+                "# Project Guidelines\n"
+                "\n"
+                "## Build & Test Commands\n"
+                "\n"
+                "- Install: `npm install`\n"
+                "- Test: `npm test`\n"
+                "- Lint: `npm run lint`\n"
+                "- Build: `npm run build`\n"
+                "\n"
+                "## Architecture\n"
+                "\n"
+                "Describe your project structure here.\n"
+                "\n"
+                "## Coding Standards\n"
+                "\n"
+                "Add your coding conventions here.\n"
+            ),
+            ".claude/settings.json": (
+                "{\n"
+                '  "$schema": "https://json.schemastore.org/claude-code-settings.json",\n'
+                '  "permissions": {\n'
+                '    "allow": [],\n'
+                '    "deny": []\n'
+                "  }\n"
+                "}\n"
+            ),
         },
     ),
+    # --- Cursor ---
+    # Docs: https://cursor.com/docs/rules
+    # Format: .mdc (Markdown with YAML frontmatter) in .cursor/rules/
     AgentConfig(
         name="Cursor",
         config_dir=".cursor",
         home_paths=(".cursor/extensions", ".cursor/argv.json"),
-        cwd_paths=(".cursor",),
+        cwd_paths=(".cursor", ".cursorrules"),
         file_patterns=(
-            ".cursor/rules",
             ".cursor/rules/",
+            ".cursorrules",
         ),
         init_files={
-            ".cursor/rules": "# Cursor Rules\n\nAdd your Cursor rules here.\n",
+            ".cursor/rules/project.mdc": (
+                "---\n"
+                "description: Project-wide coding standards\n"
+                "globs: \n"
+                "alwaysApply: true\n"
+                "---\n"
+                "\n"
+                "# Project Guidelines\n"
+                "\n"
+                "Add your project-wide rules here.\n"
+            ),
         },
     ),
+    # --- GitHub Copilot ---
+    # Docs: https://docs.github.com/en/copilot/customizing-copilot
     AgentConfig(
         name="GitHub Copilot",
         config_dir=".github",
-        home_paths=(".copilot/config.json", ".copilot"),
-        cwd_paths=(".github/copilot-instructions.md", ".github/agents"),
+        home_paths=(".copilot", ".copilot/agents"),
+        cwd_paths=(
+            ".github/copilot-instructions.md",
+            ".github/agents",
+            ".github/instructions",
+        ),
         file_patterns=(
             ".github/copilot-instructions.md",
             ".github/copilot-setup-steps.yml",
             ".github/agents/",
+            ".github/instructions/",
+            ".github/prompts/",
         ),
         init_files={
-            ".github/copilot-instructions.md": "# Copilot Instructions\n\nAdd your GitHub Copilot instructions here.\n",
+            ".github/copilot-instructions.md": (
+                "# Copilot Instructions\n"
+                "\n"
+                "## Project Overview\n"
+                "\n"
+                "Describe what this project does.\n"
+                "\n"
+                "## Coding Standards\n"
+                "\n"
+                "Add your coding conventions here.\n"
+                "\n"
+                "## Build & Validation Commands\n"
+                "\n"
+                "- Install: `npm install`\n"
+                "- Test: `npm test`\n"
+                "- Lint: `npm run lint`\n"
+            ),
         },
     ),
+    # --- Windsurf (Codeium) ---
+    # Docs: https://docs.windsurf.com/plugins/cascade/memories
+    # Rules: .windsurf/rules/*.md (workspace), .windsurf/workflows/*.md
     AgentConfig(
         name="Windsurf",
         config_dir=".windsurf",
         home_paths=(
-            ".codeium/windsurf/config.json",
-            ".codeium/windsurf/argv.json",
             ".codeium/windsurf",
+            ".codeium/windsurf/config.json",
         ),
-        cwd_paths=(".windsurf",),
-        file_patterns=(".windsurfrules",),
+        cwd_paths=(".windsurf", ".windsurfrules"),
+        file_patterns=(
+            ".windsurf/rules/",
+            ".windsurf/workflows/",
+            ".windsurfrules",
+        ),
         init_files={
-            ".windsurfrules": "# Windsurf Rules\n\nAdd your Windsurf rules here.\n",
+            ".windsurf/rules/project.md": (
+                "# Project Guidelines\n"
+                "\n"
+                "Add your Windsurf Cascade rules here.\n"
+                "\n"
+                "## Code Style\n"
+                "\n"
+                "- Describe your coding conventions\n"
+                "\n"
+                "## Architecture\n"
+                "\n"
+                "- Describe your project structure\n"
+            ),
         },
     ),
-    AgentConfig(
-        name="Codeium",
-        config_dir=".codeium",
-        home_paths=(".codeium",),
-        cwd_paths=(".codeium",),
-        file_patterns=(".codeium/instructions.md",),
-        init_files={
-            ".codeium/instructions.md": "# Codeium Instructions\n\nAdd your Codeium instructions here.\n",
-        },
-    ),
+    # --- Continue.dev ---
+    # Docs: https://docs.continue.dev/customize/deep-dives/rules
+    # Config: .continue/config.yaml (v1 schema), rules in .continue/rules/*.md
     AgentConfig(
         name="Continue.dev",
         config_dir=".continue",
         home_paths=(".continue",),
         cwd_paths=(".continue",),
         file_patterns=(
-            ".continue/instructions.md",
+            ".continue/config.yaml",
             ".continue/config.json",
+            ".continue/rules/",
         ),
         init_files={
-            ".continue/instructions.md": "# Continue.dev Instructions\n\nAdd your Continue.dev instructions here.\n",
+            ".continue/rules/project.md": (
+                "---\n"
+                "name: Project Guidelines\n"
+                "globs: []\n"
+                "alwaysApply: true\n"
+                "---\n"
+                "\n"
+                "Add your Continue.dev rules here.\n"
+            ),
         },
     ),
+    # --- Codex (OpenAI CLI) ---
+    # Docs: https://developers.openai.com/codex
+    # Config: .codex/config.toml (TOML), instructions via AGENTS.md
     AgentConfig(
         name="Codex",
         config_dir=".codex",
-        home_paths=(".codex/config.json", ".codex/settings.json", ".codex"),
+        home_paths=(".codex", ".codex/config.toml"),
         cwd_paths=(".codex",),
-        file_patterns=(),
+        file_patterns=(
+            ".codex/config.toml",
+        ),
         init_files={
-            ".codex/instructions.md": "# Codex Instructions\n\nAdd your Codex instructions here.\n",
+            ".codex/config.toml": (
+                "# Codex CLI Configuration\n"
+                "# See https://developers.openai.com/codex/config-basic\n"
+                "\n"
+                '# model = "codex-1"\n'
+                '# approval_policy = "on-request"\n'
+            ),
         },
     ),
+    # --- Gemini CLI (Google) ---
+    # Docs: https://github.com/google-gemini/gemini-cli
+    # Context: GEMINI.md (project + global), settings: .gemini/settings.json
     AgentConfig(
         name="Gemini CLI",
         config_dir=".gemini",
-        home_paths=(".gemini",),
-        cwd_paths=(".gemini",),
-        file_patterns=(),
+        home_paths=(".gemini", ".gemini/settings.json"),
+        cwd_paths=(".gemini", "GEMINI.md"),
+        file_patterns=(
+            "GEMINI.md",
+            ".gemini/settings.json",
+            ".geminiignore",
+        ),
         init_files={
-            ".gemini/instructions.md": "# Gemini CLI Instructions\n\nAdd your Gemini CLI instructions here.\n",
+            "GEMINI.md": (
+                "# Project Guidelines\n"
+                "\n"
+                "## General Instructions\n"
+                "\n"
+                "Add your Gemini CLI instructions here.\n"
+                "\n"
+                "## Coding Style\n"
+                "\n"
+                "Describe your conventions.\n"
+            ),
         },
     ),
+    # --- OpenCode ---
+    # Docs: https://opencode.ai/docs/config
+    # Config: opencode.json (project root), .opencode/ directory
     AgentConfig(
         name="OpenCode",
         config_dir=".opencode",
-        home_paths=(".config/opencode", ".opencode"),
-        cwd_paths=(".opencode",),
-        file_patterns=(),
+        home_paths=(".config/opencode", ".config/opencode/opencode.json"),
+        cwd_paths=(".opencode", "opencode.json"),
+        file_patterns=(
+            "opencode.json",
+            ".opencode/agents/",
+            ".opencode/commands/",
+        ),
         init_files={
-            ".opencode/instructions.md": "# OpenCode Instructions\n\nAdd your OpenCode instructions here.\n",
+            "opencode.json": (
+                "{\n"
+                '  "$schema": "https://opencode.ai/config.json"\n'
+                "}\n"
+            ),
         },
     ),
+    # --- Goose (AAIF / Linux Foundation) ---
+    # Docs: https://goose-docs.ai/docs/guides/context-engineering/using-goosehints
+    # Context: .goosehints (supports @file imports), global: ~/.config/goose/
     AgentConfig(
         name="Goose",
-        config_dir=".goose",
-        home_paths=(".config/goose",),
-        cwd_paths=(".goose",),
-        file_patterns=(),
+        config_dir=".",
+        home_paths=(".config/goose", ".config/goose/config.yaml"),
+        cwd_paths=(".goosehints",),
+        file_patterns=(
+            ".goosehints",
+        ),
         init_files={
-            ".goosehints": "# Goose Hints\n\nAdd your Goose hints here.\n",
+            ".goosehints": (
+                "# Project context for Goose\n"
+                "\n"
+                "Describe your project and conventions here.\n"
+                "\n"
+                "# Reference other files with @:\n"
+                "# @README.md\n"
+                "# @docs/contributing.md\n"
+            ),
         },
     ),
+    # --- Cline ---
+    # Docs: https://github.com/cline/cline (docs/customization/cline-rules.mdx)
+    # Rules: .clinerules/ directory (.md/.txt, optional YAML frontmatter with paths:)
+    # Global: ~/Documents/Cline/Rules/ (Windows/macOS/Linux)
     AgentConfig(
         name="Cline",
-        config_dir=".cline",
-        home_paths=(".cline/settings.json", ".cline"),
-        cwd_paths=(".cline",),
+        config_dir=".clinerules",
+        home_paths=("Documents/Cline/Rules",),
+        cwd_paths=(".clinerules",),
         file_patterns=(
-            ".clinerules",
             ".clinerules/",
         ),
         init_files={
-            ".clinerules": "# Cline Rules\n\nAdd your Cline rules here.\n",
+            ".clinerules/project.md": (
+                "# Project Guidelines\n"
+                "\n"
+                "## Code Style\n"
+                "\n"
+                "Add your coding conventions here.\n"
+                "\n"
+                "## Testing\n"
+                "\n"
+                "Describe your testing requirements.\n"
+            ),
         },
     ),
+    # --- Roo Code ---
+    # Docs: https://docs.roocode.com/features/custom-instructions
+    # Rules: .roo/rules/ (all modes), .roo/rules-{mode}/ (mode-specific)
+    # Global: ~/.roo/rules/
     AgentConfig(
         name="Roo Code",
         config_dir=".roo",
-        home_paths=(".roo",),
-        cwd_paths=(".roo",),
-        file_patterns=(".roo/",),
+        home_paths=(".roo", ".roo/rules"),
+        cwd_paths=(".roo", ".roorules"),
+        file_patterns=(
+            ".roo/rules/",
+            ".roo/rules-code/",
+            ".roo/rules-architect/",
+            ".roo/rules-debug/",
+            ".roorules",
+        ),
         init_files={
-            ".roo/instructions.md": "# Roo Code Instructions\n\nAdd your Roo Code instructions here.\n",
+            ".roo/rules/project.md": (
+                "# Project Guidelines\n"
+                "\n"
+                "Add your Roo Code rules here.\n"
+                "These apply to all modes (code, architect, debug).\n"
+            ),
         },
     ),
+    # --- Kilo Code ---
+    # Docs: https://kilocode.dev (fork of Roo Code)
+    # Config: kilo.jsonc (project manifest), .kilo/rules/*.md
+    # Global: ~/.config/kilo/kilo.jsonc
     AgentConfig(
         name="Kilo Code",
-        config_dir=".kilocode",
-        home_paths=(".kilocode",),
-        cwd_paths=(".kilocode",),
-        file_patterns=(),
+        config_dir=".kilo",
+        home_paths=(".config/kilo", ".kilocode"),
+        cwd_paths=(".kilo", "kilo.jsonc", ".kilocode"),
+        file_patterns=(
+            "kilo.jsonc",
+            ".kilo/rules/",
+            ".kilo/agents/",
+        ),
         init_files={
-            ".kilocode/instructions.md": "# Kilo Code Instructions\n\nAdd your Kilo Code instructions here.\n",
+            ".kilo/rules/project.md": (
+                "# Project Guidelines\n"
+                "\n"
+                "Add your Kilo Code rules here.\n"
+            ),
         },
     ),
+    # --- Kiro (AWS) ---
+    # Docs: https://kiro.dev
+    # Steering: .kiro/steering/*.md, specs: .kiro/specs/, hooks: .kiro/hooks/
     AgentConfig(
-        name="Kiro CLI",
+        name="Kiro",
         config_dir=".kiro",
         home_paths=(".kiro",),
         cwd_paths=(".kiro",),
-        file_patterns=(),
+        file_patterns=(
+            ".kiro/steering/",
+            ".kiro/specs/",
+            ".kiro/hooks/",
+        ),
         init_files={
-            ".kiro/instructions.md": "# Kiro Instructions\n\nAdd your Kiro instructions here.\n",
+            ".kiro/steering/product.md": (
+                "# Product Guidelines\n"
+                "\n"
+                "Describe your product context and coding standards.\n"
+            ),
         },
     ),
+    # --- Aider ---
+    # Docs: https://aider.chat/docs/config/aider_conf.html
+    # Config: .aider.conf.yml (YAML, every CLI option is a key)
+    # Ignore: .aiderignore (gitignore syntax)
     AgentConfig(
         name="Aider",
         config_dir=".",
@@ -205,57 +398,129 @@ AGENT_CONFIGS: list[AgentConfig] = [
             ".aiderignore",
         ),
         init_files={
-            ".aider.conf.yml": "# Aider Configuration\n# See https://aider.chat/docs/config.html\n",
+            ".aider.conf.yml": (
+                "# Aider Configuration\n"
+                "# See https://aider.chat/docs/config/aider_conf.html\n"
+                "\n"
+                "# model: claude-sonnet-4-5\n"
+                "# auto-commits: true\n"
+                "# auto-lint: true\n"
+                "# gitignore: true\n"
+                "\n"
+                "# Read-only context files:\n"
+                "# read:\n"
+                "#   - CONVENTIONS.md\n"
+            ),
         },
     ),
+    # --- Junie (JetBrains) ---
+    # Docs: https://www.jetbrains.com/help/junie/
+    # Guidelines: .junie/guidelines.md
     AgentConfig(
         name="Junie",
         config_dir=".junie",
-        home_paths=(".junie",),
+        home_paths=(),
         cwd_paths=(".junie",),
-        file_patterns=(".junie/",),
+        file_patterns=(
+            ".junie/guidelines.md",
+            ".junie/",
+        ),
         init_files={
-            ".junie/guidelines.md": "# Junie Guidelines\n\nAdd your Junie guidelines here.\n",
+            ".junie/guidelines.md": (
+                "# Project Guidelines for Junie\n"
+                "\n"
+                "## Tech Stack\n"
+                "\n"
+                "Describe your technologies here.\n"
+                "\n"
+                "## Code Style\n"
+                "\n"
+                "Add your coding conventions.\n"
+                "\n"
+                "## Testing\n"
+                "\n"
+                "Describe testing requirements.\n"
+            ),
         },
     ),
+    # --- Amp (Sourcegraph) ---
+    # Docs: https://ampcode.com/manual
+    # Context: AGENTS.md (hierarchical, cwd + parents + subtrees)
+    # Global: ~/.config/amp/AGENTS.md
     AgentConfig(
         name="Amp",
-        config_dir=".amp",
-        home_paths=(".config/amp",),
-        cwd_paths=(".amp",),
+        config_dir=".",
+        home_paths=(".config/amp", ".config/amp/AGENTS.md"),
+        cwd_paths=("AGENTS.md",),
         file_patterns=(),
         init_files={
-            ".amp/instructions.md": "# Amp Instructions\n\nAdd your Amp instructions here.\n",
+            "AGENTS.md": (
+                "# Project Guidelines\n"
+                "\n"
+                "## Build & Test\n"
+                "\n"
+                "- Build: `npm run build`\n"
+                "- Test: `npm test`\n"
+                "- Lint: `npm run lint`\n"
+                "\n"
+                "## Architecture\n"
+                "\n"
+                "Describe your project structure.\n"
+                "\n"
+                "## Coding Standards\n"
+                "\n"
+                "Add your conventions here.\n"
+            ),
         },
     ),
+    # --- Trae (ByteDance) ---
+    # Docs: https://docs.trae.ai/ide/rules-for-ai
+    # Rules: .trae/rules/*.md (project), global via IDE settings
     AgentConfig(
         name="Trae",
         config_dir=".trae",
         home_paths=(".trae",),
         cwd_paths=(".trae",),
-        file_patterns=(),
+        file_patterns=(
+            ".trae/rules/",
+        ),
         init_files={
-            ".trae/instructions.md": "# Trae Instructions\n\nAdd your Trae instructions here.\n",
+            ".trae/rules/project.md": (
+                "# Project Rules\n"
+                "\n"
+                "## Code Style\n"
+                "\n"
+                "Add your coding conventions here.\n"
+                "\n"
+                "## Architecture\n"
+                "\n"
+                "Describe your project structure.\n"
+            ),
         },
     ),
+    # --- Augment (Augment Code) ---
+    # Docs: https://docs.augmentcode.com/cli/rules
+    # Rules: .augment/rules/*.md (YAML frontmatter: type, description)
+    # Global: ~/.augment/rules/*.md
+    # Also reads: CLAUDE.md, AGENTS.md from project root
     AgentConfig(
         name="Augment",
         config_dir=".augment",
-        home_paths=(".augment",),
+        home_paths=(".augment", ".augment/rules"),
         cwd_paths=(".augment",),
-        file_patterns=(),
+        file_patterns=(
+            ".augment/rules/",
+        ),
         init_files={
-            ".augment/instructions.md": "# Augment Instructions\n\nAdd your Augment instructions here.\n",
-        },
-    ),
-    AgentConfig(
-        name="Kimi CLI",
-        config_dir=".kimi",
-        home_paths=(".kimi/kimi.json", ".kimi/config.toml", ".kimi"),
-        cwd_paths=(".kimi",),
-        file_patterns=(),
-        init_files={
-            ".kimi/instructions.md": "# Kimi Instructions\n\nAdd your Kimi instructions here.\n",
+            ".augment/rules/project.md": (
+                "---\n"
+                "type: always_apply\n"
+                "---\n"
+                "\n"
+                "# Project Guidelines\n"
+                "\n"
+                "Add your Augment rules here.\n"
+            ),
         },
     ),
 ]

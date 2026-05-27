@@ -83,28 +83,26 @@ This creates starter config files for the selected agents, making them detectabl
 
 ### Detected Agents
 
-| Agent | Global Detection | Project Detection |
-|---|---|---|
-| Claude Code | `~/.claude/` | `.claude/` |
-| Cursor | `~/.cursor/` | `.cursor/` |
-| GitHub Copilot | `~/.config/github-copilot/` | `.github/copilot-*` |
-| Windsurf | `~/.codeium/windsurf/` | `.windsurfrules` |
-| Codeium | `~/.codeium/` | `.codeium/` |
-| Continue.dev | `~/.continue/` | `.continue/` |
-| Codex | — | `.codex/` |
-| Gemini CLI | `~/.gemini/` | `.gemini/` |
-| OpenCode | — | `.opencode*` |
-| Goose | `~/.config/goose/` | `.goosehints` |
-| Cline | — | `.clinerules*` |
-| Roo Code | — | `.roo/` |
-| Kilo Code | — | `.kilocode*` |
-| Kiro | — | `.kiro/` |
-| Aider | `~/.aider.conf.yml` | `.aider*` |
-| Junie | — | `.junie/` |
-| Amp | `~/.amp/` | `.amp/` |
-| Trae | — | `.trae/` |
-| Augment | — | `.augment*` |
-| Kimi | — | `.kimi/` |
+| Agent | Config Files | Global Detection | Project Detection |
+|---|---|---|---|
+| Claude Code | `CLAUDE.md`, `.claude/settings.json`, `.claude/rules/`, `.claude/agents/` | `~/.claude/` | `.claude/`, `CLAUDE.md` |
+| Cursor | `.cursor/rules/*.mdc` (MDC format with YAML frontmatter) | `~/.cursor/` | `.cursor/`, `.cursorrules` |
+| GitHub Copilot | `.github/copilot-instructions.md`, `.github/agents/*.agent.md`, `.github/instructions/*.instructions.md` | `~/.copilot/` | `.github/copilot-instructions.md`, `.github/agents/` |
+| Windsurf | `.windsurf/rules/*.md`, `.windsurf/workflows/*.md`, `.windsurfrules` | `~/.codeium/windsurf/` | `.windsurf/`, `.windsurfrules` |
+| Continue.dev | `.continue/config.yaml`, `.continue/rules/*.md` | `~/.continue/` | `.continue/` |
+| Codex | `.codex/config.toml` (TOML), `AGENTS.md` (instructions) | `~/.codex/` | `.codex/` |
+| Gemini CLI | `GEMINI.md`, `.gemini/settings.json`, `.geminiignore` | `~/.gemini/` | `.gemini/`, `GEMINI.md` |
+| OpenCode | `opencode.json`, `.opencode/agents/`, `.opencode/commands/` | `~/.config/opencode/` | `.opencode/`, `opencode.json` |
+| Goose | `.goosehints` (supports `@file` imports) | `~/.config/goose/` | `.goosehints` |
+| Cline | `.clinerules/*.md` (optional YAML frontmatter with `paths:`) | `~/Documents/Cline/Rules/` | `.clinerules/` |
+| Roo Code | `.roo/rules/`, `.roo/rules-{mode}/` (code, architect, debug) | `~/.roo/` | `.roo/`, `.roorules` |
+| Kilo Code | `kilo.jsonc`, `.kilo/rules/*.md`, `.kilo/agents/` | `~/.config/kilo/` | `.kilo/`, `kilo.jsonc` |
+| Kiro | `.kiro/steering/*.md`, `.kiro/specs/`, `.kiro/hooks/` | `~/.kiro/` | `.kiro/` |
+| Aider | `.aider.conf.yml` (YAML), `.aiderignore` | `~/.aider.conf.yml` | `.aider.conf.yml` |
+| Junie | `.junie/guidelines.md` | — | `.junie/` |
+| Amp | `AGENTS.md` (hierarchical, cwd + parents) | `~/.config/amp/` | `AGENTS.md` |
+| Trae | `.trae/rules/*.md` | `~/.trae/` | `.trae/` |
+| Augment | `.augment/rules/*.md` (YAML frontmatter: `type`, `description`) | `~/.augment/` | `.augment/` |
 
 ---
 
@@ -128,51 +126,72 @@ Add any combination of the supported files. You don't need all of them — add o
 
 ```
 my-agent-configs/
+├── CLAUDE.md                        # Claude Code instructions (project root)
+├── GEMINI.md                        # Gemini CLI instructions (project root)
+├── AGENTS.md                        # Universal instructions (any agent)
 ├── .claude/
-│   └── CLAUDE.md              # Claude Code instructions
+│   ├── settings.json                # Claude Code settings
+│   └── rules/                       # Claude Code scoped rules
+│       └── security.md
 ├── .cursor/
-│   └── rules                  # Cursor rules
+│   └── rules/                       # Cursor rules (MDC format)
+│       └── project.mdc
 ├── .github/
-│   ├── copilot-instructions.md  # GitHub Copilot instructions
-│   └── agents/                  # Copilot agent definitions
-│       ├── CodeReview.md
-│       └── Security.md
+│   ├── copilot-instructions.md      # GitHub Copilot instructions
+│   ├── agents/                      # Copilot agent definitions
+│   │   └── CodeReview.agent.md
+│   └── instructions/                # Copilot scoped instructions
+│       └── python.instructions.md
+├── .windsurf/
+│   └── rules/                       # Windsurf Cascade rules
+│       └── project.md
 ├── .continue/
-│   └── instructions.md        # Continue.dev instructions
-├── .codeium/
-│   └── instructions.md        # Codeium / Windsurf instructions
-└── AGENTS.md                  # Generic agent instructions
+│   └── rules/                       # Continue.dev rules
+│       └── project.md
+├── .clinerules/                     # Cline rules
+│   └── project.md
+├── .roo/
+│   └── rules/                       # Roo Code rules (all modes)
+│       └── project.md
+├── .aider.conf.yml                  # Aider configuration
+├── .goosehints                      # Goose context hints
+└── .junie/
+    └── guidelines.md                # Junie guidelines
 ```
 
 ### Step 3: Write your instructions
 
 Each file contains instructions specific to its agent. A common pattern is to write the main instructions in one file (e.g. `.claude/CLAUDE.md`) and have other agent files reference it:
 
-**.claude/CLAUDE.md** — your main, detailed instructions:
+**CLAUDE.md** (project root) — your main, detailed instructions:
 ```markdown
 # Project Guidelines
 
-## Code Style
-- Use TypeScript strict mode
-- Follow ESLint rules
-- Write tests for all new code
+## Build & Test Commands
+
+- Install: `npm install`
+- Test: `npm test`
+- Lint: `npm run lint`
+- Build: `npm run build`
 
 ## Architecture
+
 - Use repository pattern for data access
 - Keep controllers thin
 - Business logic goes in services
 
-## Testing
-- Jest for unit tests
-- Cypress for E2E tests
-- Minimum 80% coverage for new code
+## Coding Standards
+
+- TypeScript strict mode
+- Follow ESLint rules
+- Write tests for all new code
 ```
 
-**.github/copilot-instructions.md** — reference the main file:
+**.github/copilot-instructions.md** — always loaded by Copilot:
 ```markdown
 # Copilot Instructions
 
-For comprehensive guidelines, refer to [CLAUDE.md](../.claude/CLAUDE.md).
+For comprehensive guidelines, refer to [CLAUDE.md](../CLAUDE.md).
 
 ## Quick Reference
 - TypeScript strict mode
@@ -180,13 +199,17 @@ For comprehensive guidelines, refer to [CLAUDE.md](../.claude/CLAUDE.md).
 - Jest for unit tests, Cypress for E2E
 ```
 
-**.cursor/rules** — same pattern:
+**.cursor/rules/project.mdc** — MDC format with YAML frontmatter:
 ```markdown
-# Cursor Rules
+---
+description: Project-wide coding standards
+globs:
+alwaysApply: true
+---
 
-Refer to [CLAUDE.md](../.claude/CLAUDE.md) for full guidelines.
+# Project Rules
 
-## Key Points
+Refer to CLAUDE.md for full guidelines.
 - TypeScript strict mode
 - Repository pattern for data access
 - Tests required for all new code
@@ -196,8 +219,14 @@ Refer to [CLAUDE.md](../.claude/CLAUDE.md) for full guidelines.
 
 If you use GitHub Copilot coding agent, you can include reusable agent definitions in `.github/agents/`:
 
-**.github/agents/CodeReview.md**:
+**.github/agents/CodeReview.agent.md** (requires `.agent.md` suffix):
 ```markdown
+---
+description: Reviews pull requests for quality and security
+tools:
+  - github
+---
+
 ## Code Review Agent
 
 You review pull requests for quality, security, and adherence to project standards.
@@ -240,26 +269,41 @@ agentfish auto-discovers these files in source repositories:
 
 | Path | Agent |
 |---|---|
-| `.claude/CLAUDE.md` | Claude Code |
-| `.claude/settings.json` | Claude Code settings |
-| `.claude/commands/**/*` | Claude Code custom commands |
-| `.cursor/rules` | Cursor |
-| `.cursor/rules/**/*.mdc` | Cursor rule files |
+| `CLAUDE.md`, `CLAUDE.local.md` | Claude Code |
+| `.claude/**/*` | Claude Code (settings, rules, agents, commands, skills) |
+| `.cursorrules` | Cursor (legacy) |
+| `.cursor/rules/**/*.mdc` | Cursor rules (MDC format) |
 | `.github/copilot-instructions.md` | GitHub Copilot |
 | `.github/copilot-setup-steps.yml` | GitHub Copilot setup |
-| `.github/agents/*.md` | GitHub Copilot Agents |
-| `.github/agents/*.mmd` | Agent interaction diagrams |
-| `.continue/instructions.md` | Continue.dev |
-| `.continue/config.json` | Continue.dev config |
-| `.codeium/instructions.md` | Codeium / Windsurf |
-| `AGENTS.md` | Generic (any agent) |
-| `.windsurfrules` | Windsurf |
-| `.clinerules` | Cline |
-| `.clinerules/**/*` | Cline rule files |
-| `.roo/**/*` | Roo Code |
-| `.aider.conf.yml` | Aider |
-| `.aiderignore` | Aider |
-| `.junie/**/*` | Junie |
+| `.github/agents/*.md`, `*.agent.md` | GitHub Copilot Agents |
+| `.github/instructions/*.instructions.md` | GitHub Copilot scoped instructions |
+| `.github/prompts/*.prompt.md` | GitHub Copilot prompts |
+| `.windsurf/rules/**/*` | Windsurf rules |
+| `.windsurf/workflows/**/*` | Windsurf workflows |
+| `.windsurfrules` | Windsurf (legacy flat file) |
+| `.continue/config.yaml`, `.continue/config.json` | Continue.dev config |
+| `.continue/rules/**/*` | Continue.dev rules |
+| `.codex/config.toml` | Codex configuration |
+| `GEMINI.md` | Gemini CLI |
+| `.gemini/settings.json` | Gemini CLI settings |
+| `.geminiignore` | Gemini CLI ignore file |
+| `opencode.json` | OpenCode config |
+| `.opencode/**/*` | OpenCode (agents, commands) |
+| `.goosehints` | Goose |
+| `.clinerules/**/*` | Cline rules |
+| `.roo/**/*` | Roo Code rules |
+| `.roorules` | Roo Code (legacy flat file) |
+| `kilo.jsonc` | Kilo Code manifest |
+| `.kilo/**/*` | Kilo Code (rules, agents) |
+| `.kiro/**/*` | Kiro (steering, specs, hooks) |
+| `.aider.conf.yml` | Aider config |
+| `.aiderignore` | Aider ignore file |
+| `.junie/**/*` | Junie guidelines |
+| `.trae/rules/**/*` | Trae rules |
+| `.augment/rules/**/*` | Augment rules |
+| `augment-guidelines.md` | Augment (legacy) |
+| `.amprules` | Amp rules |
+| `AGENTS.md` | Universal (any agent) |
 
 ---
 

@@ -18,7 +18,7 @@ from agentfish.agents import (
 
 def test_agent_configs_not_empty():
     """Agent configs registry should have entries."""
-    assert len(AGENT_CONFIGS) > 10
+    assert len(AGENT_CONFIGS) >= 18
 
 
 def test_all_agents_have_names():
@@ -29,7 +29,7 @@ def test_all_agents_have_names():
 
 def test_identify_claude_files():
     """Claude Code files should map to Claude Code agent."""
-    agent = identify_agent_for_file(".claude/CLAUDE.md")
+    agent = identify_agent_for_file("CLAUDE.md")
     assert agent is not None
     assert agent.name == "Claude Code"
 
@@ -41,10 +41,14 @@ def test_identify_claude_files():
     assert agent is not None
     assert agent.name == "Claude Code"
 
+    agent = identify_agent_for_file(".claude/rules/my-rule.md")
+    assert agent is not None
+    assert agent.name == "Claude Code"
+
 
 def test_identify_cursor_files():
     """Cursor files should map to Cursor agent."""
-    agent = identify_agent_for_file(".cursor/rules")
+    agent = identify_agent_for_file(".cursorrules")
     assert agent is not None
     assert agent.name == "Cursor"
 
@@ -66,7 +70,7 @@ def test_identify_copilot_files():
 
 def test_identify_cline_files():
     """Cline files should map to Cline agent."""
-    agent = identify_agent_for_file(".clinerules")
+    agent = identify_agent_for_file(".clinerules/project.md")
     assert agent is not None
     assert agent.name == "Cline"
 
@@ -178,22 +182,25 @@ def test_initialize_agent_creates_files(tmp_path):
     assert agent is not None
     created = initialize_agent(agent, tmp_path)
     assert len(created) > 0
-    assert ".claude/CLAUDE.md" in created
-    assert (tmp_path / ".claude" / "CLAUDE.md").exists()
+    assert "CLAUDE.md" in created
+    assert (tmp_path / "CLAUDE.md").exists()
+    assert ".claude/settings.json" in created
+    assert (tmp_path / ".claude" / "settings.json").exists()
 
 
 def test_initialize_agent_skips_existing(tmp_path):
     """initialize_agent should skip files that already exist."""
     agent = get_agent_by_name("Claude Code")
     assert agent is not None
-    # Pre-create the file
+    # Pre-create both init files
+    (tmp_path / "CLAUDE.md").write_text("existing content")
     (tmp_path / ".claude").mkdir()
-    (tmp_path / ".claude" / "CLAUDE.md").write_text("existing content")
+    (tmp_path / ".claude" / "settings.json").write_text("{}")
 
     created = initialize_agent(agent, tmp_path)
     assert len(created) == 0
     # Original content should be preserved
-    assert (tmp_path / ".claude" / "CLAUDE.md").read_text() == "existing content"
+    assert (tmp_path / "CLAUDE.md").read_text() == "existing content"
 
 
 def test_initialize_agent_makes_detectable(tmp_path):
@@ -204,3 +211,81 @@ def test_initialize_agent_makes_detectable(tmp_path):
 
     initialize_agent(agent, tmp_path)
     assert detect_agent_in_project(agent, tmp_path) is True
+
+
+def test_identify_windsurf_files():
+    """Windsurf files should map to Windsurf agent."""
+    agent = identify_agent_for_file(".windsurf/rules/project.md")
+    assert agent is not None
+    assert agent.name == "Windsurf"
+
+    agent = identify_agent_for_file(".windsurfrules")
+    assert agent is not None
+    assert agent.name == "Windsurf"
+
+
+def test_identify_gemini_files():
+    """Gemini CLI files should map to Gemini CLI agent."""
+    agent = identify_agent_for_file("GEMINI.md")
+    assert agent is not None
+    assert agent.name == "Gemini CLI"
+
+    agent = identify_agent_for_file(".gemini/settings.json")
+    assert agent is not None
+    assert agent.name == "Gemini CLI"
+
+
+def test_identify_roo_code_files():
+    """Roo Code files should map to Roo Code agent."""
+    agent = identify_agent_for_file(".roo/rules/project.md")
+    assert agent is not None
+    assert agent.name == "Roo Code"
+
+    agent = identify_agent_for_file(".roorules")
+    assert agent is not None
+    assert agent.name == "Roo Code"
+
+
+def test_identify_codex_files():
+    """Codex files should map to Codex agent."""
+    agent = identify_agent_for_file(".codex/config.toml")
+    assert agent is not None
+    assert agent.name == "Codex"
+
+
+def test_identify_opencode_files():
+    """OpenCode files should map to OpenCode agent."""
+    agent = identify_agent_for_file("opencode.json")
+    assert agent is not None
+    assert agent.name == "OpenCode"
+
+
+def test_identify_augment_files():
+    """Augment files should map to Augment agent."""
+    agent = identify_agent_for_file(".augment/rules/coding-style.md")
+    assert agent is not None
+    assert agent.name == "Augment"
+
+
+def test_identify_kiro_files():
+    """Kiro files should map to Kiro agent."""
+    agent = identify_agent_for_file(".kiro/steering/product.md")
+    assert agent is not None
+    assert agent.name == "Kiro"
+
+
+def test_kimi_removed():
+    """Kimi CLI was removed (no real config system exists)."""
+    assert get_agent_by_name("Kimi CLI") is None
+
+
+def test_all_init_files_make_agent_detectable(tmp_path):
+    """Initializing any agent should make it detectable in the project."""
+    for config in AGENT_CONFIGS:
+        project = tmp_path / config.name.replace(" ", "_")
+        project.mkdir()
+        initialize_agent(config, project)
+        assert detect_agent_in_project(config, project), (
+            f"{config.name}: init_files do not create detectable paths "
+            f"(cwd_paths={config.cwd_paths})"
+        )

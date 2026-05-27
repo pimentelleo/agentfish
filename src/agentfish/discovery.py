@@ -3,26 +3,63 @@
 from pathlib import Path
 
 AGENT_CONFIG_PATTERNS: list[str] = [
-    ".claude/CLAUDE.md",
-    ".claude/settings.json",
-    ".claude/commands/**/*",
-    ".cursor/rules",
+    # Universal
+    "AGENTS.md",
+    # Claude Code
+    "CLAUDE.md",
+    "CLAUDE.local.md",
+    ".claude/**/*",
+    # Cursor
+    ".cursorrules",
     ".cursor/rules/**/*.mdc",
-    ".continue/instructions.md",
-    ".continue/config.json",
-    ".codeium/instructions.md",
+    # GitHub Copilot
     ".github/copilot-instructions.md",
     ".github/copilot-setup-steps.yml",
     ".github/agents/*.md",
-    ".github/agents/*.mmd",
-    "AGENTS.md",
+    ".github/agents/*.agent.md",
+    ".github/instructions/*.instructions.md",
+    ".github/prompts/*.prompt.md",
+    # Windsurf
     ".windsurfrules",
-    ".clinerules",
+    ".windsurf/rules/**/*",
+    ".windsurf/workflows/**/*",
+    # Continue.dev
+    ".continue/config.yaml",
+    ".continue/config.json",
+    ".continue/rules/**/*",
+    # Codex
+    ".codex/config.toml",
+    # Gemini CLI
+    "GEMINI.md",
+    ".gemini/settings.json",
+    ".geminiignore",
+    # OpenCode
+    "opencode.json",
+    ".opencode/**/*",
+    # Goose
+    ".goosehints",
+    # Cline
     ".clinerules/**/*",
+    # Roo Code
     ".roo/**/*",
+    ".roorules",
+    # Kilo Code
+    "kilo.jsonc",
+    ".kilo/**/*",
+    # Kiro
+    ".kiro/**/*",
+    # Aider
     ".aider.conf.yml",
     ".aiderignore",
+    # Junie
     ".junie/**/*",
+    # Amp (uses AGENTS.md — already covered)
+    ".amprules",
+    # Trae
+    ".trae/rules/**/*",
+    # Augment
+    ".augment/rules/**/*",
+    "augment-guidelines.md",
 ]
 
 

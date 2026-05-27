@@ -9,10 +9,9 @@ from agentfish.discovery import discover_agent_files
 def test_discover_claude_md():
     with tempfile.TemporaryDirectory() as tmp:
         d = Path(tmp)
-        (d / ".claude").mkdir()
-        (d / ".claude" / "CLAUDE.md").write_text("# Claude instructions")
+        (d / "CLAUDE.md").write_text("# Claude instructions")
         result = discover_agent_files(d)
-        assert ".claude/CLAUDE.md" in result
+        assert "CLAUDE.md" in result
 
 
 def test_discover_github_agents():
@@ -29,17 +28,20 @@ def test_discover_github_agents():
 def test_discover_multiple_agents():
     with tempfile.TemporaryDirectory() as tmp:
         d = Path(tmp)
-        (d / ".cursor").mkdir()
-        (d / ".cursor" / "rules").write_text("cursor rules")
+        # Cursor: .cursor/rules/*.mdc format
+        (d / ".cursor" / "rules").mkdir(parents=True)
+        (d / ".cursor" / "rules" / "project.mdc").write_text("---\nalwaysApply: true\n---\n")
+        # Continue: .continue/config.yaml
         (d / ".continue").mkdir()
-        (d / ".continue" / "instructions.md").write_text("# Continue")
-        (d / ".codeium").mkdir()
-        (d / ".codeium" / "instructions.md").write_text("# Codeium")
+        (d / ".continue" / "config.yaml").write_text("name: test\n")
+        # Goose: .goosehints
+        (d / ".goosehints").write_text("# Hints")
+        # Universal
         (d / "AGENTS.md").write_text("# Agents")
         result = discover_agent_files(d)
-        assert ".cursor/rules" in result
-        assert ".continue/instructions.md" in result
-        assert ".codeium/instructions.md" in result
+        assert ".cursor/rules/project.mdc" in result
+        assert ".continue/config.yaml" in result
+        assert ".goosehints" in result
         assert "AGENTS.md" in result
 
 
