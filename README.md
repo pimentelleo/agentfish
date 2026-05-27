@@ -409,28 +409,104 @@ This keeps everyone's agent configs in sync, similar to how `package.json` + `np
 
 ---
 
-## Repo Reference Formats
+## Usage with Git Providers
 
-agentfish works with any git-cloneable repository:
+agentfish works with **any git-cloneable repository**. It uses `git clone` under the hood, so any URL that `git clone` accepts will work. Below are examples for every major provider.
+
+### GitHub
 
 ```bash
-# GitHub (shorthand)
-agentfish add owner/repo
-agentfish add owner/repo#branch
+# Shorthand (auto-expands to https://github.com/owner/repo.git)
+uvx agentfish add owner/repo
+uvx agentfish add owner/repo#main
 
-# GitHub (full URL)
-agentfish add https://github.com/owner/repo
+# Full HTTPS URL
+uvx agentfish add https://github.com/owner/repo
+uvx agentfish add https://github.com/owner/repo#my-branch
 
-# Azure DevOps
-agentfish add https://dev.azure.com/org/project/_git/repo
-agentfish add https://user@dev.azure.com/org/project/_git/repo#branch
-
-# GitLab
-agentfish add https://gitlab.com/owner/repo
-
-# Any git host
-agentfish add https://git.example.com/owner/repo.git
+# SSH (requires SSH key configured)
+uvx agentfish add git@github.com:owner/repo.git
 ```
+
+**Private repos**: GitHub HTTPS works automatically if you have `gh` CLI authenticated or a git credential manager configured. For SSH, ensure your key is in `~/.ssh/`.
+
+### Azure DevOps
+
+```bash
+# HTTPS (standard format)
+uvx agentfish add https://dev.azure.com/org/project/_git/repo
+uvx agentfish add https://dev.azure.com/org/project/_git/repo#my-branch
+
+# HTTPS with username (common when copied from Azure DevOps UI)
+uvx agentfish add https://user@dev.azure.com/org/project/_git/repo
+
+# SSH
+uvx agentfish add git@ssh.dev.azure.com:v3/org/project/repo
+```
+
+**Authentication**: Azure DevOps HTTPS requires a [Personal Access Token (PAT)](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) or a configured git credential manager. When prompted for a password, use your PAT. You can also configure it globally:
+
+```bash
+# Cache credentials for Azure DevOps
+git config --global credential.https://dev.azure.com.provider generic
+# Or use Azure CLI credential helper
+az devops login
+```
+
+### GitLab
+
+```bash
+# HTTPS
+uvx agentfish add https://gitlab.com/owner/repo
+uvx agentfish add https://gitlab.com/owner/repo#my-branch
+
+# Self-hosted GitLab
+uvx agentfish add https://gitlab.mycompany.com/group/repo
+
+# SSH
+uvx agentfish add git@gitlab.com:owner/repo.git
+```
+
+**Private repos**: Use a [Personal Access Token](https://docs.gitlab.com/user/profile/personal_access_tokens/) or SSH key.
+
+### Bitbucket
+
+```bash
+# HTTPS
+uvx agentfish add https://bitbucket.org/owner/repo
+uvx agentfish add https://bitbucket.org/owner/repo#my-branch
+
+# SSH
+uvx agentfish add git@bitbucket.org:owner/repo.git
+```
+
+**Authentication**: Use an [App Password](https://support.atlassian.com/bitbucket-cloud/docs/create-an-app-password/) for HTTPS.
+
+### Self-Hosted / Other Git Servers
+
+```bash
+# Any HTTPS git URL
+uvx agentfish add https://git.mycompany.com/team/repo.git
+uvx agentfish add https://git.mycompany.com/team/repo.git#develop
+
+# Any SSH git URL
+uvx agentfish add git@git.mycompany.com:team/repo.git
+
+# Gitea, Forgejo, etc.
+uvx agentfish add https://gitea.example.com/owner/repo
+```
+
+### Branch Selection
+
+Append `#branch-name` to any URL or shorthand to use a specific branch:
+
+```bash
+uvx agentfish add owner/repo#develop
+uvx agentfish add https://dev.azure.com/org/project/_git/repo#feature/security-configs
+uvx agentfish add https://gitlab.com/team/configs#v2
+```
+
+This is useful when you maintain different config bundles on different branches (e.g., `#dotnet`, `#python`, `#security`).
 
 ## Manifest Format
 
