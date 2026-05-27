@@ -8,9 +8,22 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 from agentfish import __version__
+from agentfish.agents import (
+    AGENT_CONFIGS,
+    detect_agent,
+    get_detected_agents,
+    identify_agent_for_file,
+    is_universal_file,
+)
 from agentfish.discovery import discover_agent_files
 from agentfish.git_provider import RepoRef, cleanup_clone, clone_repo, parse_repo_ref
-from agentfish.installer import get_repo_sha, install_files, show_discovered_files
+from agentfish.installer import (
+    filter_files_by_agents,
+    get_repo_sha,
+    install_files,
+    show_detected_agents,
+    show_discovered_files,
+)
 from agentfish.manifest import (
     MANIFEST_FILE,
     Manifest,
@@ -36,12 +49,27 @@ def main() -> None:
 @click.option("--branch", "-b", default=None, help="Branch to clone.")
 @click.option("--name", "-n", default=None, help="Custom name for this thing.")
 @click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompts.")
-def add(repo: str, branch: str | None, name: str | None, yes: bool) -> None:
+@click.option("--all-agents", "-a", is_flag=True, help="Install for all agents, not just detected ones.")
+def add(repo: str, branch: str | None, name: str | None, yes: bool, all_agents: bool) -> None:
     """Add agent configs from a git repository."""
     ref = parse_repo_ref(repo)
     if branch:
         ref.branch = branch
     thing_name = name or ref.name or derive_thing_name(repo)
+
+    target = Path.cwd()
+
+    # Always detect agents
+    detected = get_detected_agents(project_dir=target)
+    console.print()
+    show_detected_agents(detected)
+
+    if not detected and not all_agents:
+        err_console.print(
+            "[yellow]No AI coding agents detected.[/yellow]\n"
+            "[dim]Use --all-agents to install anyway.[/dim]"
+        )
+        return
 
     console.print(f"\n🐠 Fetching [bold]{ref.display}[/bold]...")
 
@@ -54,7 +82,23 @@ def add(repo: str, branch: str | None, name: str | None, yes: bool) -> None:
             err_console.print("[yellow]No agent config files found in this repository.[/yellow]")
             return
 
-        show_discovered_files(files, ref.display)
+        # Always filter by detected agents (unless --all-agents)
+        if not all_agents:
+            to_install, to_skip = filter_files_by_agents(files, detected)
+            show_discovered_files(files, ref.display, detected)
+
+            if to_skip:
+                console.print(
+                    f"\n[dim]{len(to_skip)} file(s) skipped (agents not detected). "
+                    f"Use --all-agents to install everything.[/dim]"
+                )
+
+            files = to_install
+            if not files:
+                err_console.print("[yellow]No files match detected agents.[/yellow]")
+                return
+        else:
+            show_discovered_files(files, ref.display)
 
         if not yes:
             proceed = Confirm.ask("\nInstall these files?", default=True)
@@ -62,7 +106,6 @@ def add(repo: str, branch: str | None, name: str | None, yes: bool) -> None:
                 console.print("[dim]Cancelled.[/dim]")
                 return
 
-        target = Path.cwd()
         console.print()
         installed = install_files(files, clone_dir, target, interactive=not yes)
 
@@ -87,6 +130,41 @@ def add(repo: str, branch: str | None, name: str | None, yes: bool) -> None:
     finally:
         if clone_dir:
             cleanup_clone(clone_dir)
+
+
+@main.command()
+def detect() -> None:
+    """Detect AI coding agents installed on this system."""
+    project_dir = Path.cwd()
+
+    console.print("\n🔍 Scanning for AI coding agents...\n")
+
+    # Global detection
+    global_agents = get_detected_agents(location="global")
+    project_agents = get_detected_agents(location="project", project_dir=project_dir)
+    all_agents = get_detected_agents(location="both", project_dir=project_dir)
+
+    if not all_agents:
+        console.print("[yellow]No AI coding agents detected.[/yellow]")
+        console.print("[dim]Install an agent (Claude Code, Cursor, GitHub Copilot, etc.) and try again.[/dim]")
+        return
+
+    table = Table(title="Detected AI coding agents")
+    table.add_column("Agent", style="bold cyan")
+    table.add_column("Global", width=8, justify="center")
+    table.add_column("Project", width=8, justify="center")
+
+    for agent in all_agents:
+        is_global = agent in global_agents
+        is_project = agent in project_agents
+        table.add_row(
+            agent.name,
+            "[green]✓[/green]" if is_global else "[dim]–[/dim]",
+            "[green]✓[/green]" if is_project else "[dim]–[/dim]",
+        )
+
+    console.print(table)
+    console.print(f"\n[dim]Found {len(all_agents)} agent(s) ({len(global_agents)} global, {len(project_agents)} project)[/dim]")
 
 
 @main.command("list")
@@ -158,7 +236,8 @@ def remove(name: str, yes: bool, delete_files: bool) -> None:
 @main.command()
 @click.argument("name", required=False)
 @click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompts.")
-def update(name: str | None, yes: bool) -> None:
+@click.option("--all-agents", "-a", is_flag=True, help="Install for all agents, not just detected ones.")
+def update(name: str | None, yes: bool, all_agents: bool) -> None:
     """Update installed agent configs from their source repos."""
     target = Path.cwd()
     manifest = load_manifest(target)
@@ -172,6 +251,17 @@ def update(name: str | None, yes: bool) -> None:
         err_console.print(f"[red]Thing '{name}' not found.[/red]")
         return
 
+    detected = get_detected_agents(project_dir=target)
+    console.print()
+    show_detected_agents(detected)
+
+    if not detected and not all_agents:
+        err_console.print(
+            "[yellow]No AI coding agents detected.[/yellow]\n"
+            "[dim]Use --all-agents to update anyway.[/dim]"
+        )
+        return
+
     for thing in things_to_update:
         console.print(f"\n🐠 Updating [bold]{thing.name}[/bold] from {thing.source}...")
         ref = RepoRef(url=thing.source, branch=thing.branch, name=thing.name)
@@ -183,6 +273,9 @@ def update(name: str | None, yes: bool) -> None:
             if not files:
                 console.print(f"  [yellow]No agent config files found.[/yellow]")
                 continue
+
+            if not all_agents:
+                files, _ = filter_files_by_agents(files, detected)
 
             show_discovered_files(files, thing.name)
 
@@ -247,7 +340,8 @@ def bundle() -> None:
 
 @main.command("install")
 @click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompts.")
-def install_cmd(yes: bool) -> None:
+@click.option("--all-agents", "-a", is_flag=True, help="Install for all agents, not just detected ones.")
+def install_cmd(yes: bool, all_agents: bool) -> None:
     """Install all things from .agentfish.json manifest."""
     target = Path.cwd()
     manifest = load_manifest(target)
@@ -261,6 +355,17 @@ def install_cmd(yes: bool) -> None:
         console.print("[dim]All things are local, nothing to install.[/dim]")
         return
 
+    detected = get_detected_agents(project_dir=target)
+    console.print()
+    show_detected_agents(detected)
+
+    if not detected and not all_agents:
+        err_console.print(
+            "[yellow]No AI coding agents detected.[/yellow]\n"
+            "[dim]Use --all-agents to install anyway.[/dim]"
+        )
+        return
+
     for thing in remote_things:
         console.print(f"\n🐠 Installing [bold]{thing.name}[/bold] from {thing.source}...")
         ref = RepoRef(url=thing.source, branch=thing.branch, name=thing.name)
@@ -272,6 +377,9 @@ def install_cmd(yes: bool) -> None:
             if not files:
                 console.print(f"  [yellow]No agent config files found.[/yellow]")
                 continue
+
+            if not all_agents:
+                files, _ = filter_files_by_agents(files, detected)
 
             installed = install_files(files, clone_dir, target, interactive=not yes)
             sha = get_repo_sha(clone_dir)

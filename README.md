@@ -6,7 +6,7 @@ Like [skillfish](https://github.com/knoxgraeme/skillfish) but for **full agent c
 
 ## What it does
 
-`agentfish` discovers and installs AI coding agent configuration files from any git repository into your project. It auto-detects files for Claude Code, Cursor, GitHub Copilot, Continue, Codeium, Windsurf, Cline, and more.
+`agentfish` discovers and installs AI coding agent configuration files from any git repository into your project. It **automatically detects which AI coding agents you have installed** (globally and per-project) and **only installs config files for those agents**.
 
 While **skillfish** manages individual skills (`SKILL.md` files), **agentfish** manages **complete agent configuration bundles** — the full set of instruction files, rules, and agent definitions that make AI coding assistants work well in a project.
 
@@ -21,7 +21,65 @@ pip install agentfish
 agentfish add owner/repo
 ```
 
-One command discovers all agent config files in the source repo and installs them into your project.
+One command discovers all agent config files in the source repo, detects which agents you use, and installs only the relevant files.
+
+## Agent Detection
+
+agentfish automatically detects 20+ AI coding agents by checking for their configuration directories and files — both globally (`~/`) and in the current project:
+
+```bash
+# See which agents are detected
+agentfish detect
+```
+
+```
+       Detected AI coding agents
+┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┓
+┃ Agent          ┃  Global  ┃ Project  ┃
+┡━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━┩
+│ Claude Code    │    ✓     │    ✓     │
+│ GitHub Copilot │    ✓     │    –     │
+│ Cursor         │    –     │    ✓     │
+└────────────────┴──────────┴──────────┘
+```
+
+When you run `add`, `update`, or `install`, agentfish:
+
+1. **Detects** your installed agents automatically
+2. **Shows** all discovered files with their agent ownership
+3. **Installs** only files for detected agents + universal files (like `AGENTS.md`)
+4. **Skips** files for agents you don't use
+
+Use `--all-agents` / `-a` to bypass detection and install everything:
+
+```bash
+agentfish add owner/repo --all-agents
+```
+
+### Detected Agents
+
+| Agent | Global Detection | Project Detection |
+|---|---|---|
+| Claude Code | `~/.claude/` | `.claude/` |
+| Cursor | `~/.cursor/` | `.cursor/` |
+| GitHub Copilot | `~/.config/github-copilot/` | `.github/copilot-*` |
+| Windsurf | `~/.codeium/windsurf/` | `.windsurfrules` |
+| Codeium | `~/.codeium/` | `.codeium/` |
+| Continue.dev | `~/.continue/` | `.continue/` |
+| Codex | — | `.codex/` |
+| Gemini CLI | `~/.gemini/` | `.gemini/` |
+| OpenCode | — | `.opencode*` |
+| Goose | `~/.config/goose/` | `.goosehints` |
+| Cline | — | `.clinerules*` |
+| Roo Code | — | `.roo/` |
+| Kilo Code | — | `.kilocode*` |
+| Kiro | — | `.kiro/` |
+| Aider | `~/.aider.conf.yml` | `.aider*` |
+| Junie | — | `.junie/` |
+| Amp | `~/.amp/` | `.amp/` |
+| Trae | — | `.trae/` |
+| Augment | — | `.augment*` |
+| Kimi | — | `.kimi/` |
 
 ---
 
@@ -184,7 +242,7 @@ agentfish auto-discovers these files in source repositories:
 
 ### add
 
-Install agent configs from a git repository.
+Install agent configs from a git repository. Auto-detects agents first and only installs relevant files.
 
 ```bash
 agentfish add owner/repo                    # GitHub shorthand
@@ -194,9 +252,16 @@ agentfish add https://dev.azure.com/org/project/_git/repo  # Azure DevOps
 agentfish add https://gitlab.com/owner/repo # GitLab
 agentfish add owner/repo --name my-configs  # Custom name
 agentfish add owner/repo --yes              # Skip prompts
+agentfish add owner/repo --all-agents       # Install for all agents
 ```
 
-When a file already exists in your project, agentfish asks whether to overwrite it.
+### detect
+
+Show which AI coding agents are detected on your system and in the current project.
+
+```bash
+agentfish detect
+```
 
 ### list
 
@@ -224,6 +289,7 @@ Update installed configs from their source repos.
 agentfish update                             # Update all
 agentfish update my-configs                  # Update specific bundle
 agentfish update --yes                       # Skip prompts
+agentfish update --all-agents                # Update for all agents
 ```
 
 ### init
@@ -249,6 +315,7 @@ Install all things listed in `.agentfish.json` manifest.
 ```bash
 agentfish install                            # Install from manifest
 agentfish install --yes                      # Skip prompts
+agentfish install --all-agents               # Install for all agents
 ```
 
 ---

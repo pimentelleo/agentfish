@@ -1,6 +1,6 @@
 [project]
 name = "agentfish"
-version = "0.1.2"
+version = "0.2.0"
 description = "CLI tool to install complete AI agent configuration bundles from any git repository"
 readme = "README.md"
 license = { text = "MIT" }

@@ -7,6 +7,7 @@ from pathlib import Path
 from rich.prompt import Confirm
 from rich.table import Table
 
+from agentfish.agents import AgentConfig, identify_agent_for_file, is_universal_file
 from agentfish.utils import console, is_safe_path, validate_file_path
 
 
@@ -26,14 +27,77 @@ def get_repo_sha(repo_dir: Path) -> str | None:
     return None
 
 
-def show_discovered_files(files: list[str], source: str) -> None:
-    """Display a table of discovered agent config files."""
+def show_discovered_files(
+    files: list[str],
+    source: str,
+    detected_agents: list[AgentConfig] | None = None,
+) -> None:
+    """Display a table of discovered agent config files with agent ownership."""
+    detected_names = {a.name for a in detected_agents} if detected_agents is not None else None
+
     table = Table(title=f"Agent config files found in [bold]{source}[/bold]")
     table.add_column("#", style="dim", width=4)
     table.add_column("File", style="cyan")
+    table.add_column("Agent", style="magenta")
+    if detected_names is not None:
+        table.add_column("Status", width=10)
+
     for i, f in enumerate(files, 1):
-        table.add_row(str(i), f)
+        agent = identify_agent_for_file(f)
+        agent_name = agent.name if agent else "Universal"
+
+        if detected_names is not None:
+            if is_universal_file(f):
+                status = "[green]✓ install[/green]"
+            elif agent and agent.name in detected_names:
+                status = "[green]✓ install[/green]"
+            else:
+                status = "[dim]⊘ skip[/dim]"
+            table.add_row(str(i), f, agent_name, status)
+        else:
+            table.add_row(str(i), f, agent_name)
+
     console.print(table)
+
+
+def show_detected_agents(detected: list[AgentConfig]) -> None:
+    """Display a table of detected agents."""
+    table = Table(title="Detected AI coding agents")
+    table.add_column("Agent", style="bold cyan")
+    table.add_column("Config Dir", style="dim")
+    for agent in detected:
+        table.add_row(agent.name, agent.config_dir)
+    console.print(table)
+
+
+def filter_files_by_agents(
+    files: list[str],
+    detected_agents: list[AgentConfig],
+) -> tuple[list[str], list[str]]:
+    """Split files into installable and skipped based on detected agents.
+
+    Returns (files_to_install, files_to_skip).
+    Universal files (e.g. AGENTS.md) are always included.
+    """
+    detected_names = {a.name for a in detected_agents}
+    to_install: list[str] = []
+    to_skip: list[str] = []
+
+    for f in files:
+        if is_universal_file(f):
+            to_install.append(f)
+            continue
+
+        agent = identify_agent_for_file(f)
+        if agent is None:
+            # Unknown agent file — install anyway (conservative)
+            to_install.append(f)
+        elif agent.name in detected_names:
+            to_install.append(f)
+        else:
+            to_skip.append(f)
+
+    return to_install, to_skip
 
 
 def install_files(
