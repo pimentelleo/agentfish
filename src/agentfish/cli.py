@@ -180,7 +180,7 @@ def add(repo: str, branch: str | None, name: str | None, yes: bool, all_agents: 
                 return
 
         console.print()
-        installed = install_files(files, clone_dir, target, interactive=not yes)
+        installed = install_files(files, clone_dir, target, interactive=False)
 
         if installed:
             sha = get_repo_sha(clone_dir)
@@ -195,7 +195,7 @@ def add(repo: str, branch: str | None, name: str | None, yes: bool, all_agents: 
             )
             manifest = add_thing(manifest, thing)
             save_manifest(target, manifest)
-            console.print(f"\n[green]✓ Installed {len(installed)} file(s) as [bold]{thing_name}[/bold][/green]")
+            console.print(f"\n[green]Installed {len(installed)} file(s) as [bold]{thing_name}[/bold][/green]")
         else:
             console.print("\n[yellow]No files were installed.[/yellow]")
     except RuntimeError as e:
@@ -353,7 +353,7 @@ def update(name: str | None, yes: bool, all_agents: bool) -> None:
                 if not proceed:
                     continue
 
-            installed = install_files(files, clone_dir, target, interactive=not yes)
+            installed = install_files(files, clone_dir, target, interactive=False)
             sha = get_repo_sha(clone_dir)
 
             thing.files = installed
@@ -361,7 +361,7 @@ def update(name: str | None, yes: bool, all_agents: bool) -> None:
             thing.installed_at = now_iso()
             manifest = add_thing(manifest, thing)
             save_manifest(target, manifest)
-            console.print(f"  [green]✓ Updated {len(installed)} file(s)[/green]")
+            console.print(f"  [green]Updated {len(installed)} file(s)[/green]")
         except RuntimeError as e:
             err_console.print(f"  [red]Error:[/red] {e}")
         finally:
@@ -443,13 +443,13 @@ def install_cmd(yes: bool, all_agents: bool) -> None:
             if not all_agents:
                 files, _ = filter_files_by_agents(files, detected)
 
-            installed = install_files(files, clone_dir, target, interactive=not yes)
+            installed = install_files(files, clone_dir, target, interactive=False)
             sha = get_repo_sha(clone_dir)
 
             thing.files = installed
             thing.sha = sha
             thing.installed_at = now_iso()
-            console.print(f"  [green]✓ Installed {len(installed)} file(s)[/green]")
+            console.print(f"  [green]Installed {len(installed)} file(s)[/green]")
         except RuntimeError as e:
             err_console.print(f"  [red]Error:[/red] {e}")
         finally:
@@ -457,4 +457,4 @@ def install_cmd(yes: bool, all_agents: bool) -> None:
                 cleanup_clone(clone_dir)
 
     save_manifest(target, manifest)
-    console.print(f"\n[green]✓ All things installed.[/green]")
+    console.print(f"\n[green]All things installed.[/green]")

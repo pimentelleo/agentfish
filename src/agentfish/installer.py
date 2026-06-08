@@ -123,7 +123,7 @@ def install_files(
         if not src.exists():
             continue
         if not is_safe_path(target_dir, dst):
-            console.print(f"  [red]✗[/red] Skipping path traversal: {rel_path}")
+            console.print(f"  [red]Skipping path traversal:[/red] {rel_path}")
             continue
 
         if dst.exists() and interactive:
@@ -131,12 +131,12 @@ def install_files(
                 f"  [yellow]File already exists:[/yellow] {rel_path}. Overwrite?"
             )
             if not overwrite:
-                console.print(f"  [dim]⊘ Skipped:[/dim] {rel_path}")
+                console.print(f"  [dim]Skipped:[/dim] {rel_path}")
                 continue
 
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(str(src), str(dst))
         installed.append(rel_path)
-        console.print(f"  [green]✓[/green] {rel_path}")
+        console.print(f"  [green]Added:[/green] {rel_path}")
 
     return installed
