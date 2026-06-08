@@ -121,7 +121,7 @@ def _detect_or_init(target: Path, all_agents: bool) -> list | None:
 @click.group()
 @click.version_option(version=__version__, prog_name="agentfish")
 def main() -> None:
-    """🐠 agentfish — Install AI agent config bundles from any git repo."""
+    """agentfish - Install AI agent config bundles from any git repo."""
 
 
 @main.command()
@@ -144,7 +144,7 @@ def add(repo: str, branch: str | None, name: str | None, yes: bool, all_agents: 
     if detected is None:
         return
 
-    console.print(f"\n🐠 Fetching [bold]{ref.display}[/bold]...")
+    console.print(f"\nFetching [bold]{ref.display}[/bold]...")
 
     clone_dir = None
     try:
@@ -332,7 +332,7 @@ def update(name: str | None, yes: bool, all_agents: bool) -> None:
         return
 
     for thing in things_to_update:
-        console.print(f"\n🐠 Updating [bold]{thing.name}[/bold] from {thing.source}...")
+        console.print(f"\nUpdating [bold]{thing.name}[/bold] from {thing.source}...")
         ref = RepoRef(url=thing.source, branch=thing.branch, name=thing.name)
         clone_dir = None
         try:
@@ -404,7 +404,7 @@ def bundle() -> None:
     )
     manifest = add_thing(manifest, thing)
     save_manifest(target, manifest)
-    console.print(f"\n[green]✓ Bundled {len(files)} file(s) into {MANIFEST_FILE}[/green]")
+    console.print(f"\n[green]Bundled {len(files)} file(s) into {MANIFEST_FILE}[/green]")
 
 
 @main.command("install")
@@ -429,7 +429,7 @@ def install_cmd(yes: bool, all_agents: bool) -> None:
         return
 
     for thing in remote_things:
-        console.print(f"\n🐠 Installing [bold]{thing.name}[/bold] from {thing.source}...")
+        console.print(f"\nInstalling [bold]{thing.name}[/bold] from {thing.source}...")
         ref = RepoRef(url=thing.source, branch=thing.branch, name=thing.name)
         clone_dir = None
         try:
